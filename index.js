@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
         const userCollection = client.db('hostelDB').collection("users");
@@ -42,18 +42,22 @@ async function run() {
                 { expiresIn: "1h" }
             );
             res.send({ token });
+            console.log('token jwt api:', token);
         })
 
         // jwt middleware 
         const verifyToken = async (req, res, next) => {
+            console.log("token middle:", req.headers.authorization);
+            // jwt authorization
             if (!req.headers.authorization) {
                 return res.status(403).send({ message: "access forbidden" });
             }
             const token = req.headers.authorization.split(" ")[1];
-
+            console.log('split token:', token);
+            // jwt verification
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
-                    return res.status(401).send({ message: "Unauthorized" });
+                    return res.status(401).send({ message: "Unauthorized access" });
                 }
                 req.decoded = decoded;
                 next();
@@ -61,16 +65,16 @@ async function run() {
         }
 
         // Users API >>>>>>
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
         })
 
-        app.get('/users/admin/:email',verifyToken, async (req, res) => {
+        app.get('/users/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            if (email !== req.decoded.email) {
-                return res.status(403).send({ message: "forbidden access" });
-            }
+            // if (email !== req.decoded.email) {
+            //     return res.status(403).send({ message: "forbidden access" });
+            // }
 
             const query = { email: email };
             const user = await userCollection.findOne(query);
@@ -119,6 +123,19 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const meal = await MealCollection.findOne(query);
             res.send(meal);
+        })
+
+        app.post("/meal", async (req, res) => {
+            const meal = req.body;
+            const result = await MealCollection.insertOne(meal);
+            res.send(result);
+        })
+
+        app.delete("/meal/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await MealCollection.deleteOne(query);
+            res.send(result);
         })
 
 
