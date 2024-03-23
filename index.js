@@ -131,6 +131,27 @@ async function run() {
             res.send(result);
         })
 
+        app.patch("/meal/:id", async (req, res) => {
+            const updateMeal = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateInfo = {
+                $set: {
+                    title: updateMeal.title,
+                    image: updateMeal.image,
+                    rating: updateMeal.rating,
+                    price: updateMeal.price,
+                    category: updateMeal.category,
+                    ingredients: updateMeal.ingredients,
+                    description: updateMeal.description,
+                    distributor_name: updateMeal.distributor_name,
+                    distributor_email: updateMeal.distributor_email
+                }
+            };
+            const result = await MealCollection.updateOne(filter, updateInfo);
+            res.send(result);
+        })
+
         app.delete("/meal/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
