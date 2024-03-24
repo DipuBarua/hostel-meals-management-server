@@ -31,6 +31,8 @@ async function run() {
 
         const userCollection = client.db('hostelDB').collection("users");
         const MealCollection = client.db('hostelDB').collection("meals");
+        const reviewCollection = client.db('hostelDB').collection("reviews");
+        const requestCollection = client.db('hostelDB').collection("requests");
 
 
         // jwt api 
@@ -160,6 +162,43 @@ async function run() {
         })
 
 
+        // Requested Meal - API 
+        app.get("/requested-meals", async (req, res) => {
+            const result = await requestCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get("/requested-meals/:email", async (req, res) => {
+            const query = { email: req.params.email };
+            const result = await requestCollection.find(query).sort({ "status": 1 }).toArray();
+            res.send(result);
+        })
+
+        app.post("/request", async (req, res) => {
+            const requestInfo = req.body;
+            const result = await requestCollection.insertOne(requestInfo);
+            res.send(result);
+        })
+
+
+        // Reviews collection - API 
+        app.get("/reviews", async (req, res) => {
+            const result = await reviewCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get("/reviews/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { meal_id: id };
+            const result = await reviewCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post("/review", async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        })
 
 
 
