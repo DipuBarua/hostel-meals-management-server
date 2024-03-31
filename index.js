@@ -170,13 +170,30 @@ async function run() {
 
         app.get("/requested-meals/:email", async (req, res) => {
             const query = { email: req.params.email };
-            const result = await requestCollection.find(query).sort({ "status": 1 }).toArray();
+            const result = await requestCollection.find(query).sort({ "status": -1 }).toArray();
             res.send(result);
         })
 
         app.post("/request", async (req, res) => {
             const requestInfo = req.body;
             const result = await requestCollection.insertOne(requestInfo);
+            res.send(result);
+        })
+
+        app.patch("/request/:id", async (req, res) => {
+            const filter = { _id: new ObjectId(req.params.id) };
+            const updateReq = {
+                $set: {
+                    status: "delivered"
+                }
+            }
+            const result = await requestCollection.updateOne(filter, updateReq);
+            res.send(result);
+        })
+
+        app.delete("/request/:id", async (req, res) => {
+            const query = { _id: new ObjectId(req.params.id) };
+            const result = await requestCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -194,12 +211,53 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/meal-reviews/:email', async (req, res) => {
+            // const email = req.params.email;
+            // const query = { email: req.params.email };
+            // const result = await reviewCollection.find(query).toArray();
+            const result = await reviewCollection.aggregate([
+                {
+                    $match: { email: `${req.params.email}` }
+                },
+                {
+                    $lookup: {
+                        from: "meals",
+                        localField: "meal_id",
+                        foreignField: "_id",
+                        as: "meal_review"
+                    }
+                },
+            ]).toArray();
+            // {
+            //     $unwind: "$meal_review"
+            // },
+
+            res.send(result);
+        })
+
         app.post("/review", async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review);
             res.send(result);
         })
 
+        app.patch("/review/:id", async (req, res) => {
+            const updatedReview = req.body;
+            const filter = { _id: new ObjectId(req.params.id) };
+            const update = {
+                $set: {
+                    review: updatedReview.editItem,
+                }
+            }
+            const result = await reviewCollection.updateOne(filter, update);
+            res.send(result);
+        })
+
+        app.delete("/review/:id", async (req, res) => {
+            const query = { _id: new ObjectId(req.params.id) };
+            const result = await reviewCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
         // Send a ping to confirm a successful connection
