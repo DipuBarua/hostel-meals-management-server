@@ -31,6 +31,7 @@ async function run() {
 
         const userCollection = client.db('hostelDB').collection("users");
         const MealCollection = client.db('hostelDB').collection("meals");
+        const upcomingCollection = client.db('hostelDB').collection("upcoming");
         const reviewCollection = client.db('hostelDB').collection("reviews");
         const requestCollection = client.db('hostelDB').collection("requests");
 
@@ -160,6 +161,26 @@ async function run() {
             const result = await MealCollection.deleteOne(query);
             res.send(result);
         })
+
+
+        // Upcoming Meal - API 
+        app.get("/upcoming-meals", async (req, res) => {
+            const result = await upcomingCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post("/upcoming-meals", async (req, res) => {
+            const upcomingMeal = req.body;
+            const result = await upcomingCollection.insertOne(upcomingMeal);
+            res.send(result);
+        })
+
+        app.delete("/upcoming-meals/:id", async (req, res) => {
+            const query = { _id: new ObjectId(req.params.id) };
+            const result = await upcomingCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
 
         // Requested Meal - API 
