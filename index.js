@@ -34,6 +34,7 @@ async function run() {
         const upcomingCollection = client.db('hostelDB').collection("upcoming");
         const reviewCollection = client.db('hostelDB').collection("reviews");
         const requestCollection = client.db('hostelDB').collection("requests");
+        const packageCollection = client.db('hostelDB').collection("packages");
 
 
         // jwt api 
@@ -277,6 +278,13 @@ async function run() {
         app.delete("/review/:id", async (req, res) => {
             const query = { _id: new ObjectId(req.params.id) };
             const result = await reviewCollection.deleteOne(query);
+            res.send(result);
+        })
+
+
+        // Package collection - api 
+        app.get("/packages", async (req, res) => {
+            const result = await packageCollection.find().toArray();
             res.send(result);
         })
 
