@@ -6,6 +6,7 @@
 - cors
 - .env
 - jsonwebtoken
+- stripe
 
 ### DataBase
 - Mongodb
