@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const stripe = require("stripe")(process.env.STRIPE_GATEWAY_SK);
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const req = require('express/lib/request');
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -70,9 +71,17 @@ async function run() {
             })
         }
 
+
+
         // Users API >>>>>>
         app.get('/users', verifyToken, async (req, res) => {
             const users = await userCollection.find().toArray();
+            res.send(users);
+        })
+
+        app.get('/user/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            const users = await userCollection.findOne(query);
             res.send(users);
         })
 
@@ -116,6 +125,19 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateUser);
             res.send(result);
         })
+
+        app.patch("/user-membership/:email", async (req, res) => {
+            const membership = req.body;
+            const filter = { email: req.params.email };
+            const updateMembership = {
+                $set: {
+                    membership: membership.status,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateMembership);
+            res.send(result);
+        })
+
 
 
         // meal collection api >>>>>>>
